@@ -54,25 +54,19 @@ export default function MainContent() {
     },
   ];
 
-  // Filter options for "Sort by Field" dropdown
-  const fieldMenu = (
-    <Menu>
-      <Menu.Item key="1">Technology & Engineering</Menu.Item>
-      <Menu.Item key="2">Science & Environment</Menu.Item>
-      <Menu.Item key="3">Health & Medicine</Menu.Item>
-      <Menu.Item key="4">Data & Analytics</Menu.Item>
-      <Menu.Item key="5">Social Sciences & Humanities</Menu.Item>
-    </Menu>
-  );
-
-  // Filter options for "Any time" dropdown
-  const timeMenu = (
-    <Menu>
-      <Menu.Item key="1">Since 2024</Menu.Item>
-      <Menu.Item key="2">Since 2023</Menu.Item>
-      <Menu.Item key="3">Since 2020</Menu.Item>
-    </Menu>
-  );
+  const fieldMenuItems = [
+    { key: '1', label: 'Technology & Engineering' },
+    { key: '2', label: 'Science & Environment' },
+    { key: '3', label: 'Health & Medicine' },
+    { key: '4', label: 'Data & Analytics' },
+    { key: '5', label: 'Social Sciences & Humanities' },
+  ];
+  
+  const timeMenuItems = [
+    { key: '1', label: 'Since 2024' },
+    { key: '2', label: 'Since 2023' },
+    { key: '3', label: 'Since 2020' },
+  ];
 
   return (
     <div className="mt-8 px-4 md:px-8"> {/* Adjusted padding for smaller screens */}
@@ -128,11 +122,11 @@ export default function MainContent() {
 
             {/* Filtering Options */}
             <div className="flex flex-col md:flex-row justify-between mb-4">
-              <Dropdown overlay={fieldMenu}>
+              <Dropdown menu={{ items: fieldMenuItems }}>
                 <Button>Sort by Field <DownOutlined /></Button>
               </Dropdown>
 
-              <Dropdown overlay={timeMenu}>
+              <Dropdown menu={{ items: timeMenuItems }}>
                 <Button>Any time <DownOutlined /></Button>
               </Dropdown>
 

@@ -19,7 +19,7 @@ export default function MyPublications() {
   // Fetch publications from backend
   const fetchPublications = async () => {
     try {
-      const response = await axios.get("/api/publications");
+      const response = await axios.get("https:127.0.0.1:8000/api/publications");
       setPublications(response.data);
     } catch (error) {
       message.error("Failed to load publications.");

@@ -1,83 +1,79 @@
-"use client";
+'use client'
 import React, { useState } from 'react';
 import { Button, Input, Form, Select, message } from 'antd';
 import countryList from 'react-select-country-list';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 const { Option } = Select;
 
 const Register = () => {
-  const [userType, setUserType] = useState('researcher'); // Default to "researcher"
-  const [countryCode, setCountryCode] = useState(''); // State to hold selected country code
-  const [phoneNumber, setPhoneNumber] = useState(''); // State to hold phone number
-  const countries = countryList().getData(); // List of all countries
+  const [userType, setUserType] = useState('researcher'); // Default user type
+  const [countryCode, setCountryCode] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const countries = countryList().getData();
+  const router = useRouter();
+  
 
-  // Handle user type change
-  const handleUserTypeChange = (type) => {
-    setUserType(type);
-  };
 
-  // Handle country change
-  const handleCountryChange = (value) => {
-    setCountryCode(value); // Set the selected country code
-  };
+  const handleUserTypeChange = (type) => setUserType(type); // Update user type
+  const handleCountryChange = (value) => setCountryCode(value);
 
-  // Function to get the flag URL for a given country code
-  const getFlagUrl = (country) => {
-    return `https://flagcdn.com/w320/${country.value.toLowerCase()}.png`; // Adjust the URL as necessary
-  };
+  const getFlagUrl = (country) => `https://flagcdn.com/w320/${country.value.toLowerCase()}.png`;
 
-  // Function to handle form submission
   const onFinish = async (values) => {
-    try {
-      // Prepare data to send to the backend
-      const data = {
+    if (values.password !== values.confirm_password) {
+        message.error('Passwords do not match');
+        return;
+    }
+
+    const data = {
         first_name: values.first_name,
         last_name: values.last_name,
         personal_email: values.personal_email,
         work_email: userType !== 'student' ? values.work_email : null,
         country: countryCode,
-        phone_number: `${countryCode} ${phoneNumber}`, // Combine country code with phone number
+        phone_number: `${countryCode} ${phoneNumber}`, // Format phone number
         institution: values.institution,
         password: values.password,
-      };
+        username: values.personal_email.split('@')[0],
+        user_type: userType, // Include the selected user type
+    };
 
-      const response = await fetch('http://127.0.0.1:8000/api/accounts/register/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ /* your registration data here */ }),
-    });
-    
-      // Handle the response from the backend
-      if (response.ok) {
-        const result = await response.json();
-        message.success(result.message); // Display success message
-        // Optionally redirect to another page or reset form
-      } else {
-        const errorResult = await response.json();
-        message.error(errorResult.message); // Display error message
-      }
+    console.log(data); // Debugging log
+
+    try {
+        const response = await axios.post('http://127.0.0.1:8000/api/accounts/register/', data, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (response.status === 201) {
+            message.success(response.data.message);
+            // Redirect to login page or perform other actions here
+            router.push('/login');  
+        } else {
+            message.error(response.data.message);
+        }
     } catch (error) {
-      message.error('An error occurred. Please try again.'); // Handle network errors
-    }
-  };
+            message.error('An error occurred. Please try again.' + error);
+        }
+        
+};
+
 
   return (
     <div className="min-h-screen flex bg-[#053d57] items-center justify-center">
-      {/* Left Section */}
       <div className="w-1/3 flex flex-col items-center justify-center p-8 text-white">
-        {/* Logo */}
         <div className="mb-6">
-          {/* <img src="/path/to/your/logo.png" alt="InnovateEDU Logo" className="w-20 h-20" /> */}
+          <img src="/path/to/your/logo.png" alt="InnovateEDU Logo" className="w-20 h-20" />
         </div>
-        
-        {/* Text Structure */}
         <div className="text-lg mb-2">Welcome</div>
         <div className="text-3xl font-bold mb-4">InnovateEDU Hub</div>
-        <p className="text-md mb-8 text-center">Driving Collaborative Innovation for the Future of Research and Learning</p>
-        
-        {/* Bigger Sign In Button */}
+        <p className="text-md mb-8 text-center">
+          Driving Collaborative Innovation for the Future of Research and Learning
+        </p>
         <Button
           href="/login"
           className="bg-[#dadada] text-black px-16 py-4 rounded-full text-lg hover:bg-gray-300 transition duration-300"
@@ -86,12 +82,7 @@ const Register = () => {
         </Button>
       </div>
 
-      {/* Right Section */}
-      <div
-        className="relative w-2/3 bg-[#dadada] p-6 m-8 rounded-r-lg"
-        style={{ borderTopLeftRadius: '10rem', borderBottomLeftRadius: '10rem' }}
-      >
-        {/* Sign Up Header and User Type Selector */}
+      <div className="relative w-2/3 bg-[#dadada] p-6 m-8 rounded-r-lg" style={{ borderTopLeftRadius: '10rem', borderBottomLeftRadius: '10rem' }}>
         <div className="flex items-center mb-4 ml-4">
           <h2 className="text-3xl font-bold text-[#053d57] mr-4 ml-40">Sign Up</h2>
           <div className="flex space-x-2 bg-[#053d57] p-1 rounded-full ml-auto">
@@ -107,10 +98,9 @@ const Register = () => {
           </div>
         </div>
 
-        {/* Form Fields */}
         <Form layout="vertical" onFinish={onFinish}>
           <div className="grid grid-cols-2 gap-1">
-            {/* Shared Fields */}
+            {/* Form fields */}
             <Form.Item label="First Name" name="first_name" rules={[{ required: true, message: 'Please enter your first name!' }]} style={{ marginBottom: '10px' }}>
               <Input placeholder="Enter your first name" />
             </Form.Item>
@@ -125,49 +115,32 @@ const Register = () => {
                 <Input placeholder="Enter your work email" type="email" />
               </Form.Item>
             )}
-            {/* Country Selection */}
             <Form.Item label="Country" name="country" rules={[{ required: true, message: 'Please select your country!' }]} style={{ marginBottom: '10px' }}>
-              <Select
-                placeholder="Select your country"
-                options={countries}
-                onChange={handleCountryChange}
-                value={countryCode}
-              >
+              <Select placeholder="Select your country" options={countries} onChange={handleCountryChange} value={countryCode}>
                 {countries.map((country) => (
                   <Option key={country.value} value={country.value}>
                     <div className="flex items-center">
                       <img src={getFlagUrl(country)} alt={`${country.label} flag`} className="w-5 h-5 mr-2" />
-                      <span>{country.label}</span> {/* Country Name */}
+                      <span>{country.label}</span>
                     </div>
                   </Option>
                 ))}
               </Select>
             </Form.Item>
 
-            {/* Phone Number Fields */}
             <Form.Item label="Phone Number" style={{ marginBottom: '10px' }}>
               <div className="flex items-center">
-                <Select
-                  value={countryCode}
-                  onChange={handleCountryChange}
-                  style={{ width: '30%', marginRight: '10px' }} // Width of the country code selector
-                  placeholder="Country"
-                >
+                <Select value={countryCode} onChange={handleCountryChange} style={{ width: '30%', marginRight: '10px' }} placeholder="Country">
                   {countries.map((country) => (
                     <Option key={country.value} value={country.value}>
                       <div className="flex items-center">
                         <img src={getFlagUrl(country)} alt={`${country.label} flag`} className="w-5 h-5 mr-2" />
-                        <span>{country.label}</span> {/* Country Name */}
+                        <span>{country.label}</span>
                       </div>
                     </Option>
                   ))}
                 </Select>
-                <Input
-                  placeholder="Enter your phone number"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)} // Handles phone number changes
-                  style={{ width: '70%' }} // Width of the phone number input
-                />
+                <Input placeholder="Enter your phone number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} style={{ width: '70%' }} />
               </div>
             </Form.Item>
 
@@ -182,16 +155,16 @@ const Register = () => {
             </Form.Item>
           </div>
 
-          {/* Register Button */}
-          <Form.Item className="text-center">
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              className="w-3/4" 
-              style={{ backgroundColor: '#053d57', borderColor: '#053d57' }}
-            >
-              Register
-            </Button>
+          <Form.Item>
+          <Button 
+            type="primary" 
+            htmlType="submit" 
+            className="w-32 bg-[#053d57] hover:bg-blue-700 rounded-full transition duration-300 px-16 py-4 text-lg"
+            style={{ float: 'right' }}
+          >
+            Register
+          </Button>
+
           </Form.Item>
         </Form>
       </div>
@@ -199,4 +172,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Register
