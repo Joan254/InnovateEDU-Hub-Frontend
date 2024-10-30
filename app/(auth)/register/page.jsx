@@ -4,6 +4,8 @@ import { Button, Input, Form, Select, message } from 'antd';
 import countryList from 'react-select-country-list';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import Logo from '/public/icons/innovateedu-logo.png';
+import Image from 'next/image';
 
 const { Option } = Select;
 
@@ -67,7 +69,14 @@ const Register = () => {
     <div className="min-h-screen flex bg-[#053d57] items-center justify-center">
       <div className="w-1/3 flex flex-col items-center justify-center p-8 text-white">
         <div className="mb-6">
-          <img src="/path/to/your/logo.png" alt="InnovateEDU Logo" className="w-20 h-20" />
+        <Image
+            src={Logo}
+            alt="Logo"
+            width={150}
+            height={150}
+            style={{ width: 'auto', height: 'auto' }}
+            priority
+        />
         </div>
         <div className="text-lg mb-2">Welcome</div>
         <div className="text-3xl font-bold mb-4">InnovateEDU Hub</div>

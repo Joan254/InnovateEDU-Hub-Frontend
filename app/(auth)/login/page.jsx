@@ -1,21 +1,30 @@
 "use client";
 import { Button, Input, message, Spin } from 'antd';
 import React, { useState } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import Logo from '/public/icons/innovateedu-logo.png';
 
 const SignIn = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);  // Loading state for UX
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+
+    // Helper function to set cookies
+    const setCookie = (name, value, days) => {
+        const expires = new Date(Date.now() + days * 864e5).toUTCString();
+        document.cookie = `${name}=${value}; expires=${expires}; path=/; Secure; SameSite=Lax`;
+    };
 
     // Function to handle sign-in
     const handleSignIn = async () => {
-        // Basic client-side validation
         if (!email || !password) {
             message.error('Please provide both email and password.');
             return;
         }
 
-        setLoading(true);  // Activate loading spinner
+        setLoading(true);
 
         try {
             const response = await fetch('http://127.0.0.1:8000/api/accounts/login/', {
@@ -23,27 +32,30 @@ const SignIn = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    personal_email: email,
-                    password: password,
-                }),
+                body: JSON.stringify({ personal_email: email, password }),
             });
 
-            // Handle response based on status code
             const responseData = await response.json();
+            console.log('API Response:', responseData);
+
             if (response.ok) {
-                message.success(responseData.message);
-                // Redirect user to dashboard upon successful login
-                window.location.href = '/dashboard';
+                if (responseData.access && responseData.refresh) {
+                    // Store tokens in cookies
+                    setCookie('access', responseData.access, 7);
+                    setCookie('refresh', responseData.refresh, 7);
+                    
+                    message.success('Login successful!');
+                    router.push('/dashboard');
+                } else {
+                    message.error('Login failed. Please check your credentials.');
+                }
             } else {
-                // Error message from server or fallback
-                message.error(responseData.message);
+                message.error(responseData.message || 'An unknown error occurred. Please try again.');
             }
         } catch (error) {
-            // Network or other unforeseen errors
-            message.error('An error occurred. Please try again later:' + error);
+            message.error(`An error occurred: ${error.message}`);
         } finally {
-            setLoading(false);  // Deactivate loading spinner
+            setLoading(false);
         }
     };
 
@@ -51,7 +63,14 @@ const SignIn = () => {
         <div className="flex h-screen bg-[#053D57]">
             <div className="w-1/3 flex flex-col items-center justify-center p-8 text-white">
                 <div className="mb-6">
-                    <img src="/path/to/your/logo.png" alt="InnovateEDU Logo" className="w-20 h-20" />
+                    <Image
+                        src={Logo}
+                        alt="Logo"
+                        width={150}
+                        height={150}
+                        style={{ width: 'auto', height: 'auto' }}
+                        priority
+                    />
                 </div>
                 <h1 className="text-4xl font-semibold mb-2">Welcome</h1>
                 <h2 className="text-2xl font-semibold mb-4">InnovateEDU Hub</h2>
@@ -65,58 +84,53 @@ const SignIn = () => {
                     Sign Up
                 </Button>
             </div>
-            <div 
-                className="relative w-2/3 bg-[#dadada] p-8 m-8 rounded-r-lg shadow-lg" 
+            <div
+                className="relative w-2/3 bg-[#dadada] p-8 m-8 rounded-r-lg shadow-lg"
                 style={{ borderTopLeftRadius: '10rem', borderBottomLeftRadius: '10rem' }}
             >
                 <div className="p-8 max-w-md mx-auto">
                     <h1 className="text-4xl font-bold text-center mb-6">Sign In</h1>
-                    
+
                     <div className="mb-5">
-                    <label className="block text-lg font-medium mb-2" htmlFor="email">
-                        Personal Email
-                    </label>
-                    <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg"
-                    />
+                        <label className="block text-lg font-medium mb-2" htmlFor="email">
+                            Personal Email
+                        </label>
+                        <Input
+                            id="email"
+                            type="email"
+                            placeholder="Enter your email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-4 py-2 border rounded-lg"
+                        />
                     </div>
 
                     <div className="mb-5">
-                    <label className="block text-lg font-medium mb-2" htmlFor="password">
-                        Password
-                    </label>
-                    <Input.Password
-                        id="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-4 py-2 border rounded-lg"
-                    />
+                        <label className="block text-lg font-medium mb-2" htmlFor="password">
+                            Password
+                        </label>
+                        <Input.Password
+                            id="password"
+                            placeholder="Enter your password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-4 py-2 border rounded-lg"
+                        />
                     </div>
 
-                    <Button 
-                    className="w-full bg-[#053d57] hover:bg-blue-700 rounded-full text-white transition duration-300 py-3 text-lg"
-                    onClick={handleSignIn} 
-                    disabled={loading}
+                    <Button
+                        className="w-full bg-[#053d57] hover:bg-blue-700 rounded-full text-white transition duration-300 py-3 text-lg"
+                        onClick={handleSignIn}
+                        disabled={loading}
                     >
-                    {loading ? <Spin /> : 'Sign In'}
+                        {loading ? <Spin /> : 'Sign In'}
                     </Button>
                 </div>
             </div>
-
         </div>
     );
 };
 
-const LoginPage = () => {
-    return (
-            <SignIn />
-    );
-};
+const LoginPage = () => <SignIn />;
 
 export default LoginPage;
