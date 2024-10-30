@@ -37,10 +37,10 @@ export default function MyPublications() {
 
   // Fetch publications from backend using user ID
   const fetchPublications = async () => {
-    if (!userId) return; // Ensure userId is available
-    setLoading(true);
+    // if (!userId) return; // Ensure userId is available
+    // setLoading(true);
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/publications/user/${userId}/`);
+      const response = await axios.get(`http://127.0.0.1:8000/api/publications/`);
       setPublications(response.data);
     } catch (error) {
       message.error("Failed to load publications.");
@@ -114,7 +114,7 @@ export default function MyPublications() {
 
   useEffect(() => {
     fetchPublications(); // Fetch publications whenever userId changes
-  }, [userId]);
+  }, []);
 
   const downloadDocument = async (id, title) => {
     try {
